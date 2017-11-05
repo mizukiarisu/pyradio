@@ -27,10 +27,16 @@ def __configureLogger():
     # add ch to logger
     logger.addHandler(fh)
 
+
 DEFAULT_FILE = ''
-for p in [path.join(getenv('HOME', '~'), '.pyradio', 'stations.csv'),
-          path.join(getenv('HOME', '~'), '.pyradio'),
-          path.join(path.dirname(__file__), 'stations.csv')]:
+locations = []
+if getenv('XDG_CONFIG_HOME'):
+    locations.append(path.join(getenv('XDG_CONFIG_HOME'), 'pyradio', 'stations.csv'))
+locations.extend([path.join(getenv('HOME', '~'), '.pyradio', 'stations.csv'),
+                 path.join(getenv('HOME', '~'), '.pyradio'),
+                 path.join(path.dirname(__file__), 'stations.csv')])
+
+for p in locations:
     if path.exists(p) and path.isfile(p):
         DEFAULT_FILE = p
         break
