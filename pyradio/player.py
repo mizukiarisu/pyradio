@@ -130,6 +130,36 @@ class MpPlayer(Player):
         """ decrease mplayer's volume """
         self._sendCommand("/")
 
+    def updateStatus(self):
+        if (logger.isEnabledFor(logging.DEBUG)):
+            logger.debug("updateStatus thread started.")
+        try:
+            out = self.process.stdout
+            r = re.compile(r"ICY Info: StreamTitle='([^']*)';.*")
+            while(True):
+                subsystemOut = out.readline().decode("utf-8", "ignore")
+                if subsystemOut == '':
+                    break
+                subsystemOut = subsystemOut.strip()
+                subsystemOut = subsystemOut.replace("\r", "").replace("\n", "")
+
+                # strip ICY info
+                if not subsystemOut.startswith("ICY Info:"):
+                    continue
+                try:
+                    subsystemOut = r.match(subsystemOut).group(1)
+                except AttributeError:
+                    subsystemOut = ""
+
+                if (logger.isEnabledFor(logging.DEBUG)):
+                    logger.debug("User input: {}".format(subsystemOut))
+                self.outputStream.write(subsystemOut)
+        except:
+            logger.error("Error in updateStatus thread.",
+                         exc_info=True)
+        if (logger.isEnabledFor(logging.DEBUG)):
+            logger.debug("updateStatus thread stopped.")
+
 
 class Mpv(Player):
     """Implementation of Player object for mpv"""
@@ -161,6 +191,36 @@ class Mpv(Player):
     def volumeDown(self):
         """ decrease mplayer's volume """
         self._sendCommand("9")
+
+    def updateStatus(self):
+        if (logger.isEnabledFor(logging.DEBUG)):
+            logger.debug("updateStatus thread started.")
+        try:
+            out = self.process.stdout
+            r = re.compile("icy-title: (.*)")
+            while(True):
+                subsystemOut = out.readline().decode("utf-8", "ignore")
+                if subsystemOut == '':
+                    break
+                subsystemOut = subsystemOut.strip()
+                subsystemOut = subsystemOut.replace("\r", "").replace("\n", "")
+
+                # strip ICY info
+                if not subsystemOut.startswith("icy-title:"):
+                    continue
+                try:
+                    subsystemOut = r.match(subsystemOut).group(1)
+                except AttributeError:
+                    subsystemout = ""
+
+                if (logger.isEnabledFor(logging.DEBUG)):
+                    logger.debug("User input: {}".format(subsystemOut))
+                self.outputStream.write(subsystemOut)
+        except:
+            logger.error("Error in updateStatus thread.",
+                         exc_info=True)
+        if (logger.isEnabledFor(logging.DEBUG)):
+            logger.debug("updateStatus thread stopped.")
 
 
 class VlcPlayer(Player):
