@@ -2,6 +2,7 @@ import subprocess
 import threading
 import os
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class Player(object):
         opts = []
         isPlayList = streamUrl.split("?")[0][-3:] in ['m3u', 'pls']
         opts = self._buildStartOpts(streamUrl, isPlayList)
+        logger.debug("opts: {}".format(opts))
         self.process = subprocess.Popen(opts, shell=False,
                                         stdout=subprocess.PIPE,
                                         stdin=subprocess.PIPE,
@@ -127,6 +129,38 @@ class MpPlayer(Player):
     def volumeDown(self):
         """ decrease mplayer's volume """
         self._sendCommand("/")
+
+
+class Mpv(Player):
+    """Implementation of Player object for mpv"""
+    PLAYER_CMD = "mpv"
+
+    def _buildStartOpts(self, streamUrl, playList=False):
+        if playList:
+            opts = [self.PLAYER_CMD, "--quiet", "--playlist", streamUrl]
+        else:
+            opts = [self.PLAYER_CMD, "--quiet", streamUrl]
+        return opts
+
+    def mute(self):
+        """Mute mpv"""
+        self._sendCommand("m")
+
+    def pause(self):
+        """Pause mpv"""
+        self._sendCommand("p")
+
+    def _stop(self):
+        """ exit pyradio (and kill mpv instance) """
+        self._sendCommand("q")
+
+    def volumeUp(self):
+        """ increase mplayer's volume """
+        self._sendCommand("0")
+
+    def volumeDown(self):
+        """ decrease mplayer's volume """
+        self._sendCommand("9")
 
 
 class VlcPlayer(Player):
